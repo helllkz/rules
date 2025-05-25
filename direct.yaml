@@ -1,4 +1,4 @@
 payload:
-  - DOMAIN-SUFFIX,synology.me
-  - DOMAIN-SUFFIX,synology.com
-  - DOMAIN-SUFFIX,synology.cn
+- DOMAIN-SUFFIX,synology.me
+- DOMAIN-SUFFIX,synology.com
+- DOMAIN-SUFFIX,synology.cn

@@ -1,0 +1,245 @@
+######### 锚点 start #######
+# 策略组相关
+pr: &pr {type: select, proxies: [默认, 香港, 香港自动选择, 台湾, 台湾自动选择, 日本, 日本自动选择, 新加坡, 新加坡自动选择, 美国, 美国自动选择, 其它地区, 自动选择, 直连]}
+#这里是订阅更新和延迟测试相关的
+p: &p {type: http, interval: 3600, health-check: {enable: true, url: "https://www.gstatic.com/generate_204", interval: 300}}
+######### 锚点 end #######
+
+mixed-port: 7890
+allow-lan: true
+bind-address: '*'
+mode: rule
+log-level: debug
+external-controller: '[::]:9090'
+experimental:
+  ignore-resolve-fail: true
+hosts:
+
+dns:
+  enable: true
+  listen: '[::]:1053'
+  ipv6: false
+  prefer-h3: false
+  default-nameserver:
+  - 61.139.2.69
+  - 114.114.114.114
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+  - +.lan
+  - +.local
+  - geosite:cn
+  - geosite:category-games@cn
+  - geosite:connectivity-check
+  - "stun.*.*.*"
+  - "stun.*.*"
+  - "liukz.cc"
+  use-hosts: true
+  nameserver-policy:
+    "geosite:cn,category-games@cn,steam@cn,apple,apple-cn":
+    - 61.139.2.69
+    - https://doh.pub/dns-query    
+    "geosite:geolocation-!cn":
+    - https://8.8.8.8/dns-query
+    - tls://1.1.1.1:853
+    "geosite:category-ads-all": rcode://success
+  nameserver:
+  - 61.139.2.69
+  - https://doh.pub/dns-query
+find-process-mode: off
+unified-delay: true
+tcp-concurrent: true
+external-ui: ui
+external-ui-url: https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip
+secret: '536569'
+port: 8080
+socks-port: 1080
+redir-port: 7891
+tproxy-port: 7892
+tun:
+  enable: true
+  auto-route: false
+  auto-redirect: false
+  auto-detect-interface: false
+  device: nikki
+  stack: mixed
+profile:
+  store-selected: true
+  store-fake-ip: true
+geodata-mode: false # mmdb 或者 dat,true为 dat，默认值 false
+geodata-loader: standard
+geo-auto-update: true
+geo-update-interval: 24
+geox-url:
+  geosite: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat
+  mmdb: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/country.mmdb
+  geoip: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat
+  asn: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/GeoLite2-ASN.mmdb
+proxy-providers:
+  gatern:
+    type: http
+    url: 
+    path: ./profiles/gatern.yaml
+    interval: 3600
+    proxy: DIRECT
+    size-limit: 0
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 300
+      timeout: 5000
+    exclude-filter: xxx
+    exclude-type: http
+proxy-groups:
+- {name: 默认, type: select, proxies: [自动选择, 直连, 香港, 香港自动选择, 台湾, 台湾自动选择, 日本, 日本自动选择, 新加坡, 新加坡自动选择, 美国, 美国自动选择, 其它地区], icon: "https://www.clashverge.dev/assets/icons/adjust.svg"}
+- {name: NETFLIX, <<: *pr, icon: "https://www.clashverge.dev/assets/icons/netflix.svg"}
+- {name: YOUTUBE, <<: *pr, icon: "https://www.clashverge.dev/assets/icons/youtube.svg"}
+- {name: Tiktok, <<: *pr, icon: "https://www.clashverge.dev/assets/icons/tiktok.svg"}
+- {name: 巴哈姆特, <<: *pr, icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Bahamut.png"}
+- {name: Telegram, <<: *pr, icon: "https://www.clashverge.dev/assets/icons/telegram.svg"}
+- {name: Apple, <<: *pr, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/apple.svg"}
+- {name: OpenAI, <<: *pr, icon: "https://www.clashverge.dev/assets/icons/chatgpt.svg"}
+- {name: Claude, <<: *pr, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/claude.svg"}
+- {name: Steam, <<: *pr, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/steam.svg"}
+- {name: Steam创意工坊, <<: *pr, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/steam.svg"}
+- {name: 直连, type: select, proxies: [DIRECT], icon: "https://www.clashverge.dev/assets/icons/link.svg"}
+- {name: 广告过滤, type: select, proxies: [REJECT], icon: "https://www.clashverge.dev/assets/icons/bug.svg"}
+- {name: 拦截, type: select, proxies: [REJECT], icon: "https://www.clashverge.dev/assets/icons/block.svg"}
+- {name: 漏网之鱼, type: select, proxies: [直连, 默认], icon: "https://www.clashverge.dev/assets/icons/fish.svg"}
+- {name: 香港, type: select, include-all: true, filter: "(?i)(?!直连)(香港|hk|hongkong|hong kong)", icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/hk.svg"}
+- {name: 台湾, type: select, include-all: true, filter: "(?i)(?!直连)(台湾|tw|taiwan)", icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/tw.svg"}
+- {name: 日本, type: select, include-all: true, filter: "(?i)(?!直连)(日本|jp|japan)", icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/jp.svg"}
+- {name: 美国, type: select, include-all: true, filter: "(?i)(?!直连)(美国|us|unitedstates|united states)", icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/us.svg"}
+- {name: 新加坡, type: select, include-all: true, filter: "(?i)(?!直连)(新加|sg|singapore)", icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/sg.svg"}
+- {name: 其它地区, type: select, include-all: true, filter: "(?i)^(?!.*(?:🇭🇰|🇯🇵|🇺🇸|🇸🇬|🇨🇳|港|hk|hongkong|台|tw|taiwan|日|jp|japan|新|sg|singapore|美|us|unitedstates|直连)).*", icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Airport.png"}
+- {name: 自动选择, type: url-test, include-all: true, tolerance: 10, icon: "https://www.clashverge.dev/assets/icons/speed.svg"}
+- {name: 香港自动选择,type: url-test, include-all: true, filter: "(?i)(?!直连)(香港|hk|hongkong|hong kong)", icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/hk.svg"}
+- {name: 台湾自动选择,type: url-test, include-all: true, filter: "(?i)(?!直连)(台湾|tw|taiwan)", icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/tw.svg"}
+- {name: 日本自动选择,type: url-test, include-all: true, filter: "(?i)(?!直连)(日本|jp|japan)", icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/jp.svg"}
+- {name: 美国自动选择,type: url-test, include-all: true, filter: "(?i)(?!直连)(美国|us|unitedstates|united states)", icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/us.svg"}
+- {name: 新加坡自动选择,type: url-test, include-all: true, filter: "(?i)(新加|sg|singapore)", icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/sg.svg"}
+
+rule-providers:
+  reject:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt
+    path: ./ruleset/reject.yaml
+    interval: 86400
+  steamCN:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: yaml
+    path: ./ruleset/steam.yaml
+    url: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/SteamCN/SteamCN.yaml"
+  google:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt
+    path: ./ruleset/google.yaml
+    interval: 86400
+  proxy:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt
+    path: ./ruleset/proxy.yaml
+    interval: 86400
+  direct:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt
+    path: ./ruleset/direct.yaml
+    interval: 86400
+  private:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt
+    path: ./ruleset/private.yaml
+    interval: 86400
+  gfw:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt
+    path: ./ruleset/gfw.yaml
+    interval: 86400
+  tld-not-cn:
+    type: http
+    behavior: domain
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/tld-not-cn.txt
+    path: ./ruleset/tld-not-cn.yaml
+    interval: 86400
+  telegramcidr:
+    type: http
+    behavior: ipcidr
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt
+    path: ./ruleset/telegramcidr.yaml
+    interval: 86400
+  cncidr:
+    type: http
+    behavior: ipcidr
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt
+    path: ./ruleset/cncidr.yaml
+    interval: 86400
+  lancidr:
+    type: http
+    behavior: ipcidr
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt
+    path: ./ruleset/lancidr.yaml
+    interval: 86400
+  applications:
+    type: http
+    behavior: classical
+    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt
+    path: ./ruleset/applications.yaml
+    interval: 86400
+  customDirect:
+    type: http
+    behavior: classical
+    url: https://raw.githubusercontent.com/helllkz/rules/main/direct.yaml
+    path: ./ruleset/customDirect.yaml
+    interval: 86400
+  customProxy:
+    type: http
+    behavior: classical
+    url: https://raw.githubusercontent.com/helllkz/rules/main/proxy.yaml
+    path: ./ruleset/customProxy.yaml
+    interval: 86400
+  SteamCommunity:
+    type: http
+    behavior: classical
+    url: https://raw.githubusercontent.com/helllkz/rules/main/steamcommunity.yaml
+    path: ./ruleset/SteamCommunity.yaml
+    interval: 86400
+rules:
+- DOMAIN-SUFFIX,local,DIRECT
+- IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+- RULE-SET,applications,DIRECT
+- RULE-SET,private,DIRECT
+- RULE-SET,customDirect,DIRECT
+- GEOSITE,steam@cn,DIRECT
+- GEOSITE,apple-cn,DIRECT
+- GEOSITE,apple,Apple
+- GEOSITE,category-games@cn,DIRECT
+- GEOSITE,category-ads-all,广告过滤
+- RULE-SET,reject,REJECT
+- GEOSITE,netflix,NETFLIX
+- GEOSITE,youtube,YOUTUBE
+- GEOSITE,tiktok,Tiktok
+- GEOSITE,bahamut,巴哈姆特
+- GEOSITE,openai,OpenAI
+- GEOSITE,anthropic,Claude
+- RULE-SET,SteamCommunity,Steam创意工坊
+- GEOSITE,steam,Steam
+- GEOSITE,telegram,Telegram
+- RULE-SET,tld-not-cn,默认
+- RULE-SET,gfw,默认
+- RULE-SET,proxy,默认
+- RULE-SET,telegramcidr,默认
+- RULE-SET,customProxy,默认
+- RULE-SET,direct,DIRECT
+- RULE-SET,lancidr,DIRECT
+- RULE-SET,cncidr,DIRECT
+- GEOIP,PRIVATE,DIRECT,no-resolve
+- GEOIP,CN,DIRECT
+- MATCH,漏网之鱼

@@ -1,95 +1,150 @@
-######### 锚点 start #######
-# 策略组相关
-pr: &pr {type: select, proxies: [默认, 香港, 香港自动选择, 台湾, 台湾自动选择, 日本, 日本自动选择, 新加坡, 新加坡自动选择, 美国, 美国自动选择, 其它地区, 自动选择, 直连]}
-#这里是订阅更新和延迟测试相关的
-p: &p {type: http, interval: 3600, health-check: {enable: true, url: "https://www.gstatic.com/generate_204", interval: 300}}
-######### 锚点 end #######
+# HTTP(S) 代理服务端口
+port: 7890
 
-mixed-port: 7890
-allow-lan: true
-bind-address: '*'
+# SOCKS5 代理服务端口
+socks-port: 7891
+
+# Linux 和 macOS 的透明代理服务端口 (TCP 和 TProxy UDP 重定向)
+# redir-port: 7892
+
+# Linux 的透明代理服务端口 (TProxy TCP 和 TProxy UDP)
+# tproxy-port: 7893
+
+# HTTP(S) 和 SOCKS4(A)/SOCKS5 代理服务共用一个端口
+# mixed-port: 7890
+
+# 本地 SOCKS5/HTTP(S) 代理服务的认证
+# authentication:
+#  - "user1:pass1"
+#  - "user2:pass2"
+
+# 设置为 true 以允许来自其他 LAN IP 地址的连接
+# allow-lan: false
+
+# 仅当 `allow-lan` 为 `true` 时有效
+# '*': 绑定所有 IP 地址
+# 192.168.122.11: 绑定单个 IPv4 地址
+# "[aaaa::a8aa:ff:fe09:57d8]": 绑定单个 IPv6 地址
+# bind-address: '*'
+
+# Clash 路由工作模式
+# rule: 基于规则的数据包路由
+# global: 所有数据包将被转发到单个节点
+# direct: 直接将数据包转发到互联网
 mode: rule
-log-level: debug
-external-controller: '[::]:9090'
-experimental:
-  ignore-resolve-fail: true
-hosts:
 
+# 默认情况下, Clash 将日志打印到 STDOUT
+# 日志级别: info / warning / error / debug / silent
+# log-level: info
+
+# 当设置为 false 时, 解析器不会将主机名解析为 IPv6 地址
+# ipv6: false
+
+# RESTful Web API 监听地址
+external-controller: 127.0.0.1:9090
+
+# 配置目录的相对路径或静态 Web 资源目录的绝对路径. Clash core 将在
+# `http://{{external-controller}}/ui` 中提供服务.
+# external-ui: folder
+
+# RESTful API 密钥 (可选)
+# 通过指定 HTTP 头 `Authorization: Bearer ${secret}` 进行身份验证
+# 如果RESTful API在 0.0.0.0 上监听, 务必设置一个 secret 密钥.
+# secret: ""
+
+# 出站接口名称
+# interface-name: en0
+
+# fwmark (仅在 Linux 上有效)
+# routing-mark: 6666
+
+# 用于DNS服务器和连接建立的静态主机 (如/etc/hosts) .
+#
+# 支持通配符主机名 (例如 *.clash.dev, *.foo.*.example.com)
+# 非通配符域名优先级高于通配符域名
+# 例如 foo.example.com > *.example.com > .example.com
+# P.S. +.foo.com 等于 .foo.com 和 foo.com
+# hosts:
+  # '*.clash.dev': 127.0.0.1
+  # '.dev': 127.0.0.1
+  # 'alpha.clash.dev': '::1'
+
+# profile:
+  # 将 `select` 手动选择 结果存储在 $HOME/.config/clash/.cache 中
+  # 如果不需要此行为, 请设置为 false
+  # 当两个不同的配置具有同名的组时, 将共享所选值
+  # store-selected: true
+
+  # 持久化 fakeip
+  # store-fake-ip: false
+
+# DNS 服务设置
+# 此部分是可选的. 当不存在时, DNS 服务将被禁用.
 dns:
-  enable: true
-  listen: '[::]:1053'
-  ipv6: false
-  prefer-h3: false
+  enable: false
+  listen: 0.0.0.0:53
+  # ipv6: false # 当为 false 时, AAAA 查询的响应将为空
+
+  # 这些 名称服务器(nameservers) 用于解析下列 DNS 名称服务器主机名.
+  # 仅指定 IP 地址
   default-nameserver:
-  - 61.139.2.69
-  - 114.114.114.114
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
-  fake-ip-filter:
-  - +.lan
-  - +.local
-  - geosite:cn
-  - geosite:category-games@cn
-  - geosite:connectivity-check
-  - "stun.*.*.*"
-  - "stun.*.*"
-  - "liukz.cc"
-  use-hosts: true
-  nameserver-policy:
-    "geosite:cn,category-games@cn,steam@cn,apple,apple-cn":
-    - 61.139.2.69
-    - https://doh.pub/dns-query    
-    "geosite:geolocation-!cn":
-    - https://8.8.8.8/dns-query
-    - tls://1.1.1.1:853
-    "geosite:category-ads-all": rcode://success
+    - 114.114.114.114
+    - 8.8.8.8
+  # enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16 # Fake IP 地址池 CIDR
+  # use-hosts: true # 查找 hosts 并返回 IP 记录
+
+  # search-domains: [local] # A/AAAA 记录的搜索域
+
+  # 此列表中的主机名将不会使用 Fake IP 解析
+  # 即, 对这些域名的请求将始终使用其真实 IP 地址进行响应
+  # fake-ip-filter:
+  #   - '*.lan'
+  #   - localhost.ptlogin2.qq.com
+
+  # 支持 UDP、TCP、DoT、DoH. 您可以指定要连接的端口.
+  # 所有 DNS 查询都直接发送到名称服务器, 无需代理
+  # Clash 使用第一个收到的响应作为 DNS 查询的结果.
   nameserver:
-  - 61.139.2.69
-  - https://doh.pub/dns-query
-find-process-mode: off
-unified-delay: true
-tcp-concurrent: true
-external-ui: ui
-external-ui-url: https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip
-secret: '536569'
-port: 8080
-socks-port: 1080
-redir-port: 7891
-tproxy-port: 7892
-tun:
-  enable: true
-  auto-route: false
-  auto-redirect: false
-  auto-detect-interface: false
-  device: nikki
-  stack: mixed
-profile:
-  store-selected: true
-  store-fake-ip: true
-geodata-mode: false # mmdb 或者 dat,true为 dat，默认值 false
-geodata-loader: standard
-geo-auto-update: true
-geo-update-interval: 24
-geox-url:
-  geosite: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geosite.dat
-  mmdb: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/country.mmdb
-  geoip: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.dat
-  asn: https://cdn.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/GeoLite2-ASN.mmdb
-proxy-providers:
-  gatern:
-    type: http
-    url: 
-    path: ./profiles/gatern.yaml
-    interval: 3600
-    proxy: DIRECT
-    size-limit: 0
-    health-check:
-      enable: true
-      url: https://www.gstatic.com/generate_204
-      interval: 300
-      timeout: 5000
-    exclude-filter: xxx
-    exclude-type: http
+    - 114.114.114.114 # 默认值
+    - 8.8.8.8 # 默认值
+    - tls://dns.rubyfish.cn:853 # DNS over TLS
+    - https://1.1.1.1/dns-query # DNS over HTTPS
+    - dhcp://en0 # 来自 dhcp 的 dns
+    # - '8.8.8.8#en0'
+
+  # 当 `fallback` 存在时, DNS 服务器将向此部分中的服务器
+  # 与 `nameservers` 中的服务器发送并发请求
+  # 当 GEOIP 国家不是 `CN` 时, 将使用 fallback 服务器的响应
+  # fallback:
+  #   - tcp://1.1.1.1
+  #   - 'tcp://1.1.1.1#en0'
+
+  # 如果使用 `nameservers` 解析的 IP 地址在下面指定的子网中,
+  # 则认为它们无效, 并使用 `fallback` 服务器的结果.
+  #
+  # 当 `fallback-filter.geoip` 为 true 且 IP 地址的 GEOIP 为 `CN` 时,
+  # 将使用 `nameservers` 服务器解析的 IP 地址.
+  #
+  # 如果 `fallback-filter.geoip` 为 false, 且不匹配 `fallback-filter.ipcidr`,
+  # 则始终使用 `nameservers` 服务器的结果
+  #
+  # 这是对抗 DNS 污染攻击的一种措施.
+  # fallback-filter:
+  #   geoip: true
+  #   geoip-code: CN
+  #   ipcidr:
+  #     - 240.0.0.0/4
+  #   domain:
+  #     - '+.google.com'
+  #     - '+.facebook.com'
+  #     - '+.youtube.com'
+
+  # 通过特定的名称服务器查找域名
+  # nameserver-policy:
+  #   'www.baidu.com': '114.114.114.114'
+  #   '+.internal.crop.com': '10.0.0.1'
+
 proxy-groups:
 - {name: 默认, type: select, proxies: [自动选择, 直连, 香港, 香港自动选择, 台湾, 台湾自动选择, 日本, 日本自动选择, 新加坡, 新加坡自动选择, 美国, 美国自动选择, 其它地区], icon: "https://www.clashverge.dev/assets/icons/adjust.svg"}
 - {name: NETFLIX, <<: *pr, icon: "https://www.clashverge.dev/assets/icons/netflix.svg"}
@@ -97,6 +152,7 @@ proxy-groups:
 - {name: Tiktok, <<: *pr, icon: "https://www.clashverge.dev/assets/icons/tiktok.svg"}
 - {name: 巴哈姆特, <<: *pr, icon: "https://fastly.jsdelivr.net/gh/Koolson/Qure@master/IconSet/Color/Bahamut.png"}
 - {name: Telegram, <<: *pr, icon: "https://www.clashverge.dev/assets/icons/telegram.svg"}
+- {name: X, <<: *pr, icon: "https://fastly.jsdelivr.net/gh/shindgewongxj/WHATSINStash/icon/x.png"}
 - {name: Apple, <<: *pr, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/apple.svg"}
 - {name: OpenAI, <<: *pr, icon: "https://www.clashverge.dev/assets/icons/chatgpt.svg"}
 - {name: Claude, <<: *pr, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/claude.svg"}
@@ -119,127 +175,21 @@ proxy-groups:
 - {name: 美国自动选择,type: url-test, include-all: true, filter: "(?i)(?!直连)(美国|us|unitedstates|united states)", icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/us.svg"}
 - {name: 新加坡自动选择,type: url-test, include-all: true, filter: "(?i)(新加|sg|singapore)", icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/sg.svg"}
 
-rule-providers:
-  reject:
+
+proxy-providers:
+  gatern:
     type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt
-    path: ./ruleset/reject.yaml
-    interval: 86400
-  steamCN:
-    type: http
-    interval: 86400
-    behavior: classical
-    format: yaml
-    path: ./ruleset/steam.yaml
-    url: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/SteamCN/SteamCN.yaml"
-  google:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt
-    path: ./ruleset/google.yaml
-    interval: 86400
-  proxy:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt
-    path: ./ruleset/proxy.yaml
-    interval: 86400
-  direct:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt
-    path: ./ruleset/direct.yaml
-    interval: 86400
-  private:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt
-    path: ./ruleset/private.yaml
-    interval: 86400
-  gfw:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt
-    path: ./ruleset/gfw.yaml
-    interval: 86400
-  tld-not-cn:
-    type: http
-    behavior: domain
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/tld-not-cn.txt
-    path: ./ruleset/tld-not-cn.yaml
-    interval: 86400
-  telegramcidr:
-    type: http
-    behavior: ipcidr
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt
-    path: ./ruleset/telegramcidr.yaml
-    interval: 86400
-  cncidr:
-    type: http
-    behavior: ipcidr
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt
-    path: ./ruleset/cncidr.yaml
-    interval: 86400
-  lancidr:
-    type: http
-    behavior: ipcidr
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt
-    path: ./ruleset/lancidr.yaml
-    interval: 86400
-  applications:
-    type: http
-    behavior: classical
-    url: https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt
-    path: ./ruleset/applications.yaml
-    interval: 86400
-  customDirect:
-    type: http
-    behavior: classical
-    url: https://raw.githubusercontent.com/helllkz/rules/main/direct.yaml
-    path: ./ruleset/customDirect.yaml
-    interval: 86400
-  customProxy:
-    type: http
-    behavior: classical
-    url: https://raw.githubusercontent.com/helllkz/rules/main/proxy.yaml
-    path: ./ruleset/customProxy.yaml
-    interval: 86400
-  SteamCommunity:
-    type: http
-    behavior: classical
-    url: https://raw.githubusercontent.com/helllkz/rules/main/steamcommunity.yaml
-    path: ./ruleset/SteamCommunity.yaml
-    interval: 86400
+    url: "https://sub.gtaliv.com/link/196906/635c93eb78204817016b"
+    interval: 3600
+    path: ./gatern.yaml
+    health-check:
+      enable: true
+      interval: 600
+      # lazy: true
+      url: http://www.gstatic.com/generate_204
+
+
 rules:
-- DOMAIN-SUFFIX,local,DIRECT
-- IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
-- RULE-SET,applications,DIRECT
-- RULE-SET,private,DIRECT
-- RULE-SET,customDirect,DIRECT
-- GEOSITE,steam@cn,DIRECT
-- GEOSITE,apple-cn,DIRECT
-- GEOSITE,apple,Apple
-- GEOSITE,category-games@cn,DIRECT
-- GEOSITE,category-ads-all,广告过滤
-- RULE-SET,reject,REJECT
-- GEOSITE,netflix,NETFLIX
-- GEOSITE,youtube,YOUTUBE
-- GEOSITE,tiktok,Tiktok
-- GEOSITE,bahamut,巴哈姆特
-- GEOSITE,openai,OpenAI
-- GEOSITE,anthropic,Claude
-- RULE-SET,SteamCommunity,Steam创意工坊
-- GEOSITE,steam,Steam
-- GEOSITE,telegram,Telegram
-- RULE-SET,tld-not-cn,默认
-- RULE-SET,gfw,默认
-- RULE-SET,proxy,默认
-- RULE-SET,telegramcidr,默认
-- RULE-SET,customProxy,默认
-- RULE-SET,direct,DIRECT
-- RULE-SET,lancidr,DIRECT
-- RULE-SET,cncidr,DIRECT
-- GEOIP,PRIVATE,DIRECT,no-resolve
-- GEOIP,CN,DIRECT
-- MATCH,漏网之鱼
+  - DOMAIN-SUFFIX,google.com,默认
+  - GEOIP,CN,DIRECT
+  - MATCH,默认
